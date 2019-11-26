@@ -13,7 +13,7 @@ const int HEIGHT = 400;
 using namespace std;
 using namespace cv;
 
-void prepare(const String &path, vector<String> &files)
+static void prepare(const String &path, vector<String> &files)
 {
     vector<String> extensions{".jpg", ".jPg", ".jPG", ".jpG",
                               ".Jpg", ".JPg", ".JPG", ".JpG", ".png", ".pNg", ".pNG", ".pnG",
@@ -36,16 +36,30 @@ int main(int argc, char const *argv[])
     }
     String path = argv[1];
     vector<String> files;
+
+    // prepare the files
     prepare(path, files);
 
+    // empty files error dectection
+    if (files.empty())
+    {
+        cerr << "no files in the current directory!" << '\n';
+        return -1;
+    }
+
     VideoCapture video(files.back());
+
+    // input video open error detection
     if (!video.isOpened())
     {
         cerr << "Fail to open the video...!" << '\n';
         destroyWindow("MyVideo");
         return -1;
     }
+
     VideoWriter out("./out.mp4", VideoWriter::fourcc('m', 'p', '4', 'v'), video.get(CAP_PROP_FPS), Size(WIDTH, HEIGHT));
+
+    // output video open error detection
     if (!out.isOpened())
     {
         cerr << "Could not open the output video file for write\n";
@@ -58,13 +72,17 @@ int main(int argc, char const *argv[])
     Transform t(out);
     Mat pre;
     default_random_engine e(time(0));
+
+    // header
+
     for (int i = 0; i < files.size() - 1; i++)
     {
         Mat img = imread(files[i]);
         resize(img, img, Size(WIDTH, HEIGHT));
         if (i != 0)
         {
-            switch (e() % 4)
+            // choose changes randomly
+            switch (e() % 5)
             {
             case 0:
                 t.window_slides_transform(img, pre, 10, 10);
@@ -77,6 +95,9 @@ int main(int argc, char const *argv[])
                 break;
             case 3:
                 t.circle_expand_transform(img, pre, 10);
+                break;
+            case 4:
+                t.growth_transform(img, pre, 10, 10);
                 break;
             default:
                 break;
@@ -94,6 +115,9 @@ int main(int argc, char const *argv[])
     }
 
     Mat frame;
+
+    // plus video
+    bool flag = true;
     while (true)
     {
         video >> frame;
@@ -102,9 +126,17 @@ int main(int argc, char const *argv[])
         resize(frame, frame, Size(WIDTH, HEIGHT));
         putText(frame, "3160102243", Point(50, HEIGHT - 50), FONT_HERSHEY_SCRIPT_COMPLEX, 1, Scalar(255, 255, 0));
         putText(frame, "Chao Liang", Point(50, HEIGHT - 20), FONT_HERSHEY_SCRIPT_COMPLEX, 1, Scalar(255, 255, 0));
-        out << frame;
-        imshow("MyVideo", frame);
-        waitKey(1000 / video.get(CAP_PROP_FPS));
+        if (flag)
+        {
+            t.growth_transform(frame, pre, 10, 10);
+            flag = false;
+        }
+        else
+        {
+            out << frame;
+            imshow("MyVideo", frame);
+            waitKey(1000 / video.get(CAP_PROP_FPS));
+        }
     }
     video.release();
     waitKey(0);

@@ -105,8 +105,40 @@ void Transform::circle_expand_transform(const cv::Mat &a, cv::Mat &b, int scale)
             }
         }
         o << b;
-        imshow("MyVideo", b);
+        cv::imshow("MyVideo", b);
         r += scale;
+        cv::waitKey(50);
+    }
+}
+
+void Transform::growth_transform(const cv::Mat &a, cv::Mat &b, int x_num, int y_num)
+{
+    std::default_random_engine e(time(0));
+    std::vector<int> pos;
+    for (int i = 0; i < x_num * y_num; i++)
+        pos.push_back(i);
+    std::shuffle(pos.begin(), pos.end(), e);
+    const uchar *p;
+    uchar *q;
+    for (int i = 0; i < pos.size(); i++)
+    {
+        int index = pos[i];
+        int x = index % x_num;
+        int y = index / x_num;
+        for (int m = y * b.rows / y_num; m < (y + 1) * b.rows / y_num; m++)
+        {
+            p = a.ptr<uchar>(m);
+            q = b.ptr<uchar>(m);
+            for (int n = x * b.cols / x_num; n < (x + 1) * b.cols / x_num; n++)
+            {
+                for (int k = 0; k < b.channels(); k++)
+                {
+                    q[n * b.channels() + k] = p[n * b.channels() + k];
+                }
+            }
+        }
+        o << b;
+        cv::imshow("MyVideo", b);
         cv::waitKey(50);
     }
 }
