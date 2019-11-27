@@ -1,11 +1,13 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "Transform.h"
 #include <iostream>
 #include <vector>
 #include <random>
 #include <ctime>
+#include <cmath>
 
 const int WIDTH = 600;
 const int HEIGHT = 400;
@@ -74,6 +76,25 @@ int main(int argc, char const *argv[])
     default_random_engine e(time(0));
 
     // header
+    int center_x = WIDTH / 2;
+    int center_y = HEIGHT / 2;
+    Mat head = Mat::zeros(Size(WIDTH, HEIGHT), CV_8UC3);
+    imshow("MyVideo", head);
+    out << head;
+    waitKey(1000);
+    for (int i = 0; i < 360; i++)
+    {
+        // Point t0(15 * (2 * sin(i * M_PI / 180) - sin(2 * i * M_PI / 180)) + center_x, -15 * (2 * cos(i * M_PI / 180) - cos(2 * i * M_PI / 180)) + center_y);
+        // Point t1(15 * (2 * sin((i + 1) * M_PI / 180) - sin(2 * (i + 1) * M_PI / 180)) + center_x, -15 * (2 * cos((i + 1) * M_PI / 180) - cos(2 * (i + 1) * M_PI / 180)) + center_y);
+        // Point t0(50 * (2 * cos(i * M_PI / 180) - cos(2 * i * M_PI / 180)) + center_x, 50 * (2 * sin(i * M_PI / 180) - sin(2 * i * M_PI / 180)) + center_y);
+        // Point t1(50 * (2 * cos((i + 1) * M_PI / 180) - cos(2 * (i + 1) * M_PI / 180)) + center_x, 50 * (2 * sin((i + 1) * M_PI / 180) - sin(2 * (i + 1) * M_PI / 180)) + center_y);
+        Point t0(50 * (-2 * sin(i * M_PI / 180) + cos(2 * i * M_PI / 180)) + center_x, 50 * (2 * cos(i * M_PI / 180) - sin(2 * i * M_PI / 180)) + center_y);
+        Point t1(50 * (-2 * sin((i + 1) * M_PI / 180) + cos(2 * (i + 1) * M_PI / 180)) + center_x, 50 * (2 * cos((i + 1) * M_PI / 180) - sin(2 * (i + 1) * M_PI / 180)) + center_y);
+        line(head, t0, t1, Scalar(0, 0, 255), 2, LINE_8);
+        imshow("MyVideo", head);
+        out << head;
+        waitKey(50);
+    }
 
     for (int i = 0; i < files.size() - 1; i++)
     {
